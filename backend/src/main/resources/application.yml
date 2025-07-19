@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: crypto-trading-sim
+    jwtSecret: k/YIuPR+/zFlnUpO/bxjuhM3fcnBVC3LqBPZ+Hx2QYE=
+    jwtExpirationMs: 172800000
+  sql:
+    init:
+      platform: postgres
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cryptosim?reWriteBatchedInserts=true
+    username: postgres
+    password: postgres
+
+  liquibase:
+    change-log: classpath:db/liquibase-changelog.xml
+
+server:
+  error:
+    include-stacktrace: always
+
+logging:
+  level:
+    org.springframework.security: DEBUG
