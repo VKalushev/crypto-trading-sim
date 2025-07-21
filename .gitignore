@@ -31,3 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
+/frontend/crypto-trading-sim/node_modules/
+/frontend/crypto-trading-sim/.env

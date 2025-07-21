@@ -1,0 +1,25 @@
+.home-page-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    padding: 2rem;
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+}
+
+.home-page-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    color: #222;
+}
+
+.home-page-subtitle {
+    margin-bottom: 2rem;
+    color: #555;
+}
+
+.home-page-table-title {
+    margin: 2rem 0 1rem 0;
+}

@@ -1,0 +1,41 @@
+.crypto-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.crypto-table th,
+.crypto-table td {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.crypto-table th {
+    background: #f3f4f6;
+    font-weight: 600;
+}
+
+.trade-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.trade-btn.buy {
+    background: #22c55e;
+    color: #fff;
+    margin-right: 0.5rem;
+}
+
+.trade-btn.sell {
+    background: #dc2626;
+    color: #fff;
+}
+
+.trade-btn:hover {
+    filter: brightness(0.95);
+}
