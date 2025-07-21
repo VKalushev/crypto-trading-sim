@@ -1,0 +1,8 @@
+# See https://www.robotstxt.org/robotstxt.html
+# for documentation on how to use the robots.txt file
+#
+# A simple example would be:
+# User-agent: *
+# Disallow: /
+User-agent: *
+Disallow:
