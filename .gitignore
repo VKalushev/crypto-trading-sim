@@ -31,6 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+/frontend/node_modules/
+/frontend/.env
 /frontend/crypto-trading-sim/node_modules/
 /frontend/crypto-trading-sim/.env
 /frontend/crypto-trading-sim/package-lock.json

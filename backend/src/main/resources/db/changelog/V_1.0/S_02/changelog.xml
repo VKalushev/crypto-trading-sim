@@ -6,6 +6,5 @@
      http://www.liquibase.org/xml/ns/dbchangelog
      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
 
-    <include file="S_01/changelog.xml" relativeToChangelogFile="true"/>
-    <include file="S_02/changelog.xml" relativeToChangelogFile="true"/>
+    <include file="create-wallet-and-supporting-tables.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

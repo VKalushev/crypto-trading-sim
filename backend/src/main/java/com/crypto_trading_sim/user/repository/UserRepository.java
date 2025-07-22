@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,7 +33,9 @@ public class UserRepository {
     };
 
     public Optional<User> findByUsername(String username) {
-        String sql = "SELECT * FROM users WHERE username = ?";
+        String sql = """
+                SELECT * FROM "user" u WHERE u.username = ?
+                """;
         return jdbcTemplate.query(sql, userRowMapper, username)
                 .stream().findFirst();
     }
@@ -40,9 +43,19 @@ public class UserRepository {
     public User insert(User user) {
         UUID id = UUID.randomUUID();
         Instant created = Instant.now();
+        Timestamp createdTs = Timestamp.from(created);
+
         String sql = """
-                    INSERT INTO users (id, username, email, password, first_name, last_name, role, created)
-                    VALUES (?, ?, ?, ?, ?, ?, ?,?)
+                INSERT INTO "user" (
+                    id,
+                    username,
+                    password,
+                    first_name,
+                    last_name,
+                    role,
+                    created
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """;
 
         jdbcTemplate.update(sql,
@@ -52,7 +65,7 @@ public class UserRepository {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getRole().name(),
-                created
+                createdTs
         );
 
         user.setId(id);
