@@ -1,6 +1,5 @@
 package com.crypto_trading_sim.security;
 
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,8 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import com.crypto_trading_sim.security.jwt.AuthEntryPointJwt;
 import com.crypto_trading_sim.security.jwt.AuthTokenFilter;
 import com.crypto_trading_sim.security.jwt.JwtUtils;
 
@@ -30,28 +27,19 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
 
-    private final AuthEntryPointJwt unauthorizedHandler;
-
-    public SecurityConfig(JwtUtils jwtUtils, UserDetailsService userDetailsService, AuthEntryPointJwt unauthorizedHandler) {
+    public SecurityConfig(JwtUtils jwtUtils, UserDetailsService userDetailsService) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
-        this.unauthorizedHandler = unauthorizedHandler;
     }
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-//        http.csrf(csrf ->
-//                csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-//                        .ignoringRequestMatchers("/api/v1/auth/**"));
-
         http.csrf(AbstractHttpConfigurer::disable);
 
         http.authorizeHttpRequests(requests -> requests
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN")
+                .requestMatchers("/auth/**","/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html").permitAll()
                 .anyRequest().authenticated());
 
-        http.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler));
         http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         http.formLogin(withDefaults());
