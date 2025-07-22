@@ -1,5 +1,6 @@
 package com.crypto_trading_sim.wallet.service;
 
+import com.crypto_trading_sim.common.exception.NotFoundException;
 import com.crypto_trading_sim.wallet.domain.model.Asset;
 import com.crypto_trading_sim.wallet.domain.model.Wallet;
 import com.crypto_trading_sim.wallet.repository.AssetRepository;
@@ -25,7 +26,7 @@ public class WalletService {
     @Transactional(readOnly = true)
     public Wallet getWalletByUserId(UUID userId) {
         Wallet wallet = walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Wallet not found for user: " + userId));
+                .orElseThrow(() -> new NotFoundException("Wallet not found for user: " + userId));
         List<Asset> assets = assetRepository.findByWalletId(wallet.getId());
         wallet.setAssets(assets);
         return wallet;
@@ -42,7 +43,7 @@ public class WalletService {
     @Transactional
     public void reset(UUID userId) {
         Wallet wallet = walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Wallet not found"));
+                .orElseThrow(() -> new NotFoundException("Wallet not found"));
         wallet.setBalance(new BigDecimal("10000.00"));
         walletRepository.update(wallet);
         assetRepository.deleteAllByWalletId(wallet.getId());

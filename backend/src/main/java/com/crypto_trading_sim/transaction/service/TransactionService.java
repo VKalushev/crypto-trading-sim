@@ -1,5 +1,6 @@
 package com.crypto_trading_sim.transaction.service;
 
+import com.crypto_trading_sim.common.exception.InsufficientFundsException;
 import com.crypto_trading_sim.common.exception.NotFoundException;
 import com.crypto_trading_sim.transaction.domain.dto.TransactionDto;
 import com.crypto_trading_sim.transaction.domain.dto.TransactionRequestDto;
@@ -38,11 +39,11 @@ public class TransactionService {
     @Transactional
     public TransactionDto buy(UUID userId, TransactionRequestDto request) {
         Wallet wallet = walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Wallet not found"));
+                .orElseThrow(() -> new NotFoundException("Wallet not found"));
 
         BigDecimal cost = request.getAmount().multiply(request.getPrice());
         if (wallet.getBalance().compareTo(cost) < 0) {
-            throw new RuntimeException("Insufficient funds");
+            throw new InsufficientFundsException("Insufficient funds");
         }
 
         wallet.setBalance(wallet.getBalance().subtract(cost));
@@ -65,13 +66,13 @@ public class TransactionService {
     @Transactional
     public TransactionDto sell(UUID userId, TransactionRequestDto request) {
         Wallet wallet = walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Wallet not found"));
+                .orElseThrow(() -> new NotFoundException("Wallet not found"));
 
         Asset asset = assetRepository.findByWalletIdAndSymbol(wallet.getId(), request.getSymbol())
-                .orElseThrow(() -> new RuntimeException("Asset not found"));
+                .orElseThrow(() -> new NotFoundException("Asset not found"));
 
         if (asset.getAmount().compareTo(request.getAmount()) < 0) {
-            throw new RuntimeException("Insufficient asset amount");
+            throw new InsufficientFundsException("Insufficient asset amount");
         }
 
         asset.setAmount(asset.getAmount().subtract(request.getAmount()));
