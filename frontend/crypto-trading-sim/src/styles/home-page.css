@@ -1,25 +1,50 @@
-.home-page-card {
+.home-page-container {
+    display: flex;
+    padding: 1.5rem;
+    gap: 1.5rem;
+    align-items: flex-start;
+    max-width: 100rem;
+    margin: 0 auto;
+}
+
+.left-column {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.right-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: sticky;
+    top: 1.5rem;
+}
+
+.home-page-card, .info-card {
     background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 0.25rem 1.5rem rgba(0,0,0,0.08);
+    padding: 1.5rem;
     width: 100%;
-    max-width: 800px;
-    text-align: center;
-}
-
-.home-page-title {
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
-    color: #222;
-}
-
-.home-page-subtitle {
-    margin-bottom: 2rem;
-    color: #555;
 }
 
 .home-page-table-title {
-    margin: 2rem 0 1rem 0;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #222;
+}
+
+.error-message {
+    color: #d9534f;
+    background-color: #f2dede;
+    border-color: #ebccd1;
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+    border: 0.0625rem solid transparent;
+    border-radius: 0.25rem;
 }

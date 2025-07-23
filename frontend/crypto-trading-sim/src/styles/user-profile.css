@@ -1,0 +1,49 @@
+.user-profile-card {
+    background: #f9f9f9;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.1);
+    padding: 1.5rem;
+}
+
+.user-profile-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.user-profile-balance {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+}
+
+.user-profile-assets {
+    margin-top: 1rem;
+}
+
+.user-profile-assets ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.user-profile-assets li {
+    padding: 0.5rem 0;
+    border-bottom: 0.0625rem solid #eee;
+    display: flex;
+    justify-content: space-between;
+}
+
+.reset-wallet-btn {
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background-color 0.3s;
+}
+
+.reset-wallet-btn:hover {
+    background: #d32f2f;
+}
