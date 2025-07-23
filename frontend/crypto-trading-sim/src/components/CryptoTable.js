@@ -1,7 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './../styles/crypto-table.css';
 
-const CryptoTable = ({ topPairsInfo, prices, handleTrade }) => {
+const CryptoTable = ({ topPairsInfo, prices, handleTrade, tradeInProgress }) => {
+    const [amount, setAmount] = useState({});
+
+    const handleAmountChange = (e, symbol) => {
+        setAmount({ ...amount, [symbol]: e.target.value });
+    };
+
+    const formatPrice = (price) => {
+        const priceFloat = parseFloat(price);
+        if (priceFloat < 1) {
+            return priceFloat.toFixed(6);
+        }
+        return priceFloat.toFixed(2);
+    };
+
     return (
         <table className="crypto-table">
             <thead>
@@ -10,6 +24,7 @@ const CryptoTable = ({ topPairsInfo, prices, handleTrade }) => {
                     <th>Symbol</th>
                     <th>Price (USD)</th>
                     <th>24h USD Volume</th>
+                    <th>Amount</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -20,7 +35,7 @@ const CryptoTable = ({ topPairsInfo, prices, handleTrade }) => {
                         <td>{pair.wsname}</td>
                         <td>
                             {prices[pair.wsname]
-                                ? parseFloat(prices[pair.wsname]).toFixed(2)
+                                ? formatPrice(prices[pair.wsname])
                                 : 'Loading...'}
                         </td>
                         <td>
@@ -31,17 +46,29 @@ const CryptoTable = ({ topPairsInfo, prices, handleTrade }) => {
                                 : 'Loading...'}
                         </td>
                         <td>
+                            <input
+                                type="number"
+                                className="amount-input"
+                                placeholder="Amount"
+                                value={amount[pair.wsname] || ''}
+                                onChange={(e) => handleAmountChange(e, pair.wsname)}
+                                disabled={tradeInProgress}
+                            />
+                        </td>
+                        <td>
                             <button
                                 className="trade-btn buy"
-                                onClick={() => handleTrade('buy', pair, 100)}
+                                onClick={() => handleTrade('buy', pair, amount[pair.wsname])}
+                                disabled={tradeInProgress}
                             >
-                                Buy
+                                {tradeInProgress ? 'Buying...' : 'Buy'}
                             </button>
                             <button
                                 className="trade-btn sell"
-                                onClick={() => handleTrade('sell', pair, 100)}
+                                onClick={() => handleTrade('sell', pair, amount[pair.wsname])}
+                                disabled={tradeInProgress}
                             >
-                                Sell
+                                {tradeInProgress ? 'Selling...' : 'Sell'}
                             </button>
                         </td>
                     </tr>

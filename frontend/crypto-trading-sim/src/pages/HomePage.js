@@ -1,15 +1,19 @@
 import React, { useEffect, useState, useRef } from 'react';
 import CryptoTable from '../components/CryptoTable';
+import Portfolio from '../components/Portfolio';
+import TransactionHistory from '../components/TransactionHistory';
+import UserProfile from '../components/UserProfile';
 import '../styles/form.css';
 import '../styles/home-page.css';
 
 const BATCH_SIZE = 50;
 const MAX_SUBSCRIPTIONS = 20;
+const KRAKEN_BASE_URI = process.env.REACT_APP_KRAKEN_BASE_API_URL;
 
 const fetchAllUsdPairsWithVolume = async () => {
     try {
         const assetPairsRes = await fetch(
-            'https://api.kraken.com/0/public/AssetPairs'
+            `${KRAKEN_BASE_URI}/AssetPairs`
         );
         const assetPairsData = await assetPairsRes.json();
         const usdPairs = Object.entries(assetPairsData.result)
@@ -27,7 +31,7 @@ const fetchAllUsdPairsWithVolume = async () => {
             const batchKeys = batch.map((p) => p.key);
             try {
                 const tickerRes = await fetch(
-                    `https://api.kraken.com/0/public/Ticker?pair=${batchKeys.join(
+                    `${KRAKEN_BASE_URI}/Ticker?pair=${batchKeys.join(
                         ','
                     )}`
                 );
@@ -37,7 +41,7 @@ const fetchAllUsdPairsWithVolume = async () => {
                 for (const key of batchKeys) {
                     try {
                         const singleRes = await fetch(
-                            `https://api.kraken.com/0/public/Ticker?pair=${key}`
+                            `${KRAKEN_BASE_URI}/Ticker?pair=${key}`
                         );
                         const singleData = await singleRes.json();
                         Object.assign(allTickerData, singleData.result);
@@ -88,11 +92,55 @@ const fetchAllUsdPairsWithVolume = async () => {
 };
 
 const HomePage = () => {
+    const apiUrl = process.env.REACT_APP_BACKEND_BASE_API_URL;
     const [prices, setPrices] = useState({});
     const [topPairsInfo, setTopPairsInfo] = useState([]);
+    const [user, setUser] = useState(null);
+    const [transactions, setTransactions] = useState([]);
+    const [tradeError, setTradeError] = useState(null);
+    const [tradeInProgress, setTradeInProgress] = useState(false);
     const wsRef = useRef(null);
     const allPairsRef = useRef([]);
     const nextPairIndexRef = useRef(0);
+    const activeSubscriptionsRef = useRef(new Set());
+
+    const fetchUser = async () => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const response = await fetch(`${apiUrl}/user`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                if (response.ok) {
+                    const userData = await response.json();
+                    setUser(userData);
+                }
+            } catch (error) {
+                console.error('Failed to fetch user data:', error);
+            }
+        }
+    };
+
+    const fetchTransactions = async () => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const response = await fetch(`${apiUrl}/transaction/history`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                if (response.ok) {
+                    const transactionData = await response.json();
+                    setTransactions(transactionData);
+                }
+            } catch (error) {
+                console.error('Failed to fetch transaction data:', error);
+            }
+        }
+    };
 
     const subscribeToNextAvailablePairs = (count) => {
         const ws = wsRef.current;
@@ -104,7 +152,9 @@ const HomePage = () => {
             nextPairIndexRef.current < allPairsRef.current.length
         ) {
             const pair = allPairsRef.current[nextPairIndexRef.current];
-            pairsToSubscribe.push(pair);
+            if (pair && !activeSubscriptionsRef.current.has(pair.wsname)) {
+                pairsToSubscribe.push(pair);
+            }
             nextPairIndexRef.current++;
         }
 
@@ -117,11 +167,13 @@ const HomePage = () => {
                 })
             );
             console.log(`Attempting to subscribe to: ${symbols.join(', ')}`);
-            setTopPairsInfo((prevPairs) => [...prevPairs, ...pairsToSubscribe]);
         }
     };
 
     useEffect(() => {
+        fetchUser();
+        fetchTransactions();
+
         let isMounted = true;
 
         const connect = () => {
@@ -136,7 +188,21 @@ const HomePage = () => {
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
 
-                if (
+                if (data.method === 'subscribe' && data.result && !data.error) {
+                    const subscribedSymbol = data.result.symbol;
+                    if (subscribedSymbol && !activeSubscriptionsRef.current.has(subscribedSymbol)) {
+                        activeSubscriptionsRef.current.add(subscribedSymbol);
+                        const pairInfo = allPairsRef.current.find(p => p.wsname === subscribedSymbol);
+                        if (pairInfo) {
+                            setTopPairsInfo(prevPairs => {
+                                if (prevPairs.some(p => p.wsname === pairInfo.wsname)) {
+                                    return prevPairs;
+                                }
+                                return [...prevPairs, pairInfo];
+                            });
+                        }
+                    }
+                } else if (
                     data.channel === 'ticker' &&
                     (data.type === 'snapshot' || data.type === 'update') &&
                     Array.isArray(data.data)
@@ -151,13 +217,19 @@ const HomePage = () => {
                         return updated;
                     });
                 } else if (data.error) {
-                    console.error(
-                        `Subscription error for ${data.symbol}: ${data.error}`
-                    );
-                    setTopPairsInfo((prevPairs) =>
-                        prevPairs.filter((p) => p.wsname !== data.symbol)
-                    );
-                    subscribeToNextAvailablePairs(1);
+                    const failedSymbol = data.result ? data.result.symbol : data.symbol;
+                    if (failedSymbol) {
+                        console.error(`Subscription error for ${failedSymbol}: ${data.error}`);
+                        activeSubscriptionsRef.current.delete(failedSymbol);
+                        setTopPairsInfo((prevPairs) =>
+                            prevPairs.filter((p) => p.wsname !== failedSymbol)
+                        );
+                        if (activeSubscriptionsRef.current.size < MAX_SUBSCRIPTIONS) {
+                            subscribeToNextAvailablePairs(1);
+                        }
+                    } else {
+                        console.error('An unknown error occurred:', data);
+                    }
                 }
             };
 
@@ -185,33 +257,114 @@ const HomePage = () => {
             if (wsRef.current) {
                 wsRef.current.close();
             }
+            activeSubscriptionsRef.current.clear();
+            setTopPairsInfo([]);
         };
     }, []);
 
-    const handleTrade = (type, pair, amount) => {
-        console.log(`${type} request:`, {
-            pair: pair.wsname,
-            price: prices[pair.wsname],
-        });
+    const handleTrade = async (type, pair, amount) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setTradeError('You must be logged in to trade.');
+            return;
+        }
+
+        if (!amount || amount <= 0) {
+            setTradeError('Please enter a valid amount.');
+            return;
+        }
+
+        setTradeInProgress(true);
+        setTradeError(null);
+
+        try {
+            const response = await fetch(`${apiUrl}/transaction/${type}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    symbol: pair.wsname,
+                    price: prices[pair.wsname],
+                    amount: amount,
+                }),
+            });
+
+            if (response.ok) {
+                fetchUser();
+                fetchTransactions();
+            } else {
+                const error = await response.json();
+                setTradeError(error.message);
+            }
+        } catch (err) {
+            setTradeError('An unexpected error occurred. Please try again.');
+            console.error('Trade error:', err);
+        } finally {
+            setTradeInProgress(false);
+        }
+    };
+
+    const handleWalletReset = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setTradeError('You must be logged in to perform this action.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${apiUrl}/wallet/reset`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                fetchUser();
+                fetchTransactions();
+            } else {
+                const error = await response.json();
+                setTradeError(error.message);
+            }
+        } catch (err) {
+            setTradeError('An unexpected error occurred. Please try again.');
+            console.error('Wallet reset error:', err);
+        }
     };
 
     return (
         <div className="form-bg">
-            <div className="home-page-card">
-                <h1 className="home-page-title">
-                    Welcome to Crypto Trading Sim!
-                </h1>
-                <p className="home-page-subtitle">
-                    You are logged in. Start trading or explore the app.
-                </p>
-                <h2 className="home-page-table-title">
-                    Top 20 Crypto Prices (Live from Kraken)
-                </h2>
-                <CryptoTable
-                    topPairsInfo={topPairsInfo}
-                    prices={prices}
-                    handleTrade={handleTrade}
-                />
+            <div className="home-page-container">
+                <div className="left-column">
+                    <div className="home-page-card">
+                        <h2 className="home-page-table-title">
+                            Top 20 Crypto Prices (Live from Kraken)
+                        </h2>
+                        {tradeError && <p className="error-message">{tradeError}</p>}
+                        {tradeInProgress && <p>Processing trade...</p>}
+                        <CryptoTable
+                            topPairsInfo={topPairsInfo}
+                            prices={prices}
+                            handleTrade={handleTrade}
+                            tradeInProgress={tradeInProgress}
+                        />
+                    </div>
+                </div>
+                <div className="right-column">
+                    <div className="info-card">
+                        {user && <UserProfile user={user} onWalletReset={handleWalletReset} />}
+                    </div>
+                    <div className="info-card">
+                        {user && <Portfolio user={user} />}
+                    </div>
+                    <div className="info-card">
+                        <h2 className="home-page-table-title">Transaction History</h2>
+                        <TransactionHistory transactions={transactions} />
+                    </div>
+                </div>
             </div>
         </div>
     );
