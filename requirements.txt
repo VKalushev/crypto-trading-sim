@@ -1,0 +1,22 @@
+# This file lists the main dependencies for the project for informational purposes.
+# The backend dependencies are managed by Maven (see backend/pom.xml).
+# The frontend dependencies are managed by npm (see frontend/crypto-trading-sim/package.json).
+
+# --- Backend (Java/Spring Boot) ---
+- Java 17
+- Spring Boot 3.3.1
+- Spring Boot Starter Security (for authentication and authorization)
+- Spring Boot Starter Web (for building REST APIs)
+- Spring Boot Starter Data JDBC (for database access)
+- PostgreSQL Driver (for connecting to the PostgreSQL database)
+- Liquibase (for database schema management)
+- JJWT (for JSON Web Token generation and validation)
+- MapStruct (for mapping between DTOs and entities)
+- Springdoc OpenAPI (for API documentation)
+
+# --- Frontend (React) ---
+- React 18.3.1
+- React DOM 18.3.1
+- React Router DOM 6.24.0 (for client-side routing)
+- React Scripts 5.0.1 (for build scripts)
+- Web Vitals (for performance monitoring)
