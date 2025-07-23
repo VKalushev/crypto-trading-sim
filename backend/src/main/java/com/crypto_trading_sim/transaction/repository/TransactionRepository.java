@@ -22,8 +22,8 @@ public class TransactionRepository {
 
     private final RowMapper<Transaction> transactionRowMapper = (rs, rowNum) -> {
         Transaction transaction = new Transaction();
-        transaction.setId(UUID.fromString(rs.getString("id")));
-        transaction.setWalletId(UUID.fromString(rs.getString("wallet_id")));
+        transaction.setId(rs.getObject("id", UUID.class));
+        transaction.setWalletId(rs.getObject("wallet_id", UUID.class));
         transaction.setSymbol(rs.getString("symbol"));
         transaction.setAmount(rs.getBigDecimal("amount"));
         transaction.setPrice(rs.getBigDecimal("price"));
@@ -34,8 +34,7 @@ public class TransactionRepository {
 
     public Transaction insert(Transaction transaction) {
         transaction.setId(UUID.randomUUID());
-        Instant now = Instant.now();
-        transaction.setCreated(now);
+        transaction.setCreated(Instant.now());
         String sql = "INSERT INTO transaction (id, wallet_id, symbol, amount, price, type, created) VALUES (?, ?, ?, ?, ?, ?, ?)";
         jdbcTemplate.update(sql,
                 transaction.getId(),
@@ -44,13 +43,12 @@ public class TransactionRepository {
                 transaction.getAmount(),
                 transaction.getPrice(),
                 transaction.getType().name(),
-                Timestamp.from(now)
+                Timestamp.from(transaction.getCreated())
         );
         return transaction;
     }
 
     public List<Transaction> findAllByWalletId(UUID walletId) {
-        String sql = "SELECT * FROM transaction WHERE wallet_id = ?";
-        return jdbcTemplate.query(sql, transactionRowMapper, walletId);
+        return jdbcTemplate.query("SELECT * FROM transaction WHERE wallet_id = ?", transactionRowMapper, walletId);
     }
 }

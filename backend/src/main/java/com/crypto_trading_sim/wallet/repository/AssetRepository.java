@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -32,8 +33,7 @@ public class AssetRepository {
     };
 
     public List<Asset> findByWalletId(UUID walletId) {
-        String sql = "SELECT * FROM asset WHERE wallet_id = ?";
-        return jdbcTemplate.query(sql, assetRowMapper, walletId);
+        return jdbcTemplate.query("SELECT * FROM asset WHERE wallet_id = ?", assetRowMapper, walletId);
     }
 
     public Asset insert(Asset asset) {
@@ -77,13 +77,18 @@ public class AssetRepository {
     public void save(Asset asset) {
         if (asset.getId() == null) {
             insert(asset);
+        } else if(asset.getAmount().compareTo(BigDecimal.ZERO) == 0){
+            delete(asset.getId());
         } else {
             update(asset);
         }
     }
 
+    public void delete(UUID id) {
+        jdbcTemplate.update("DELETE FROM asset WHERE id = ?", id);
+    }
+
     public void deleteAllByWalletId(UUID walletId) {
-        String sql = "DELETE FROM asset WHERE wallet_id = ?";
-        jdbcTemplate.update(sql, walletId);
+        jdbcTemplate.update("DELETE FROM asset WHERE wallet_id = ?", walletId);
     }
 }

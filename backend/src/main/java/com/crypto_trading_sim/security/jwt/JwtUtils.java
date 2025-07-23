@@ -65,16 +65,12 @@ public class JwtUtils {
                     .build().parseSignedClaims(token);
             return true;
         } catch (MalformedJwtException e) {
-            System.out.println("Invalid Token");
             logger.error("Invalid JWT token {}", e.getMessage());
         } catch (ExpiredJwtException e) {
-            System.out.println("Expired Token");
             logger.error("Expired JWT token {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
-            System.out.println("Unsupported JWT token");
             logger.error("Unsupported JWT token {}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            System.out.println("JWT claims string is empty");
             logger.error("JWT claims string is empty {}", e.getMessage());
         }
 

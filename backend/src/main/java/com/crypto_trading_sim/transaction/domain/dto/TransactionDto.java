@@ -13,7 +13,7 @@ public class TransactionDto {
     private BigDecimal amount;
     private BigDecimal price;
     private TransactionType type;
-    private Instant created;
+    private String createdAt;
 
     public UUID getId() {
         return id;
@@ -63,11 +63,11 @@ public class TransactionDto {
         this.type = type;
     }
 
-    public Instant getCreated() {
-        return created;
+    public String getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreated(Instant created) {
-        this.created = created;
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 }
