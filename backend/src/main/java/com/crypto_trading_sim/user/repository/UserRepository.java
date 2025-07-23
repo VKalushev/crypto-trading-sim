@@ -23,7 +23,7 @@ public class UserRepository {
 
     private final RowMapper<User> userRowMapper = (rs, rowNum) -> {
         User user = new User();
-        user.setId(UUID.fromString(rs.getString("id"))); // assuming BaseModel has `id`
+        user.setId(UUID.fromString(rs.getString("id")));
         user.setUsername(rs.getString("username"));
         user.setPassword(rs.getString("password"));
         user.setFirstName(rs.getString("first_name"));

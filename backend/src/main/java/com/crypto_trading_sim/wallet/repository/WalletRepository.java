@@ -19,8 +19,8 @@ public class WalletRepository {
 
     private final RowMapper<Wallet> walletRowMapper = (rs, rowNum) -> {
         Wallet wallet = new Wallet();
-        wallet.setId(UUID.fromString(rs.getString("id")));
-        wallet.setUserId(UUID.fromString(rs.getString("user_id")));
+        wallet.setId(rs.getObject("id", UUID.class));
+        wallet.setUserId(rs.getObject("user_id", UUID.class));
         wallet.setBalance(rs.getBigDecimal("balance"));
         return wallet;
     };
